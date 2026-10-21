@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Meal Prep Macro Builder</title>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<div class="wrap">
+  <div class="top-nav">
+    <div class="brand">Meal Prep</div>
+    <div class="profile-tabs" role="tablist" aria-label="Meal prep profiles">
+      <button class="profile-tab active" type="button" data-profile="Ty">Ty</button>
+      <button class="profile-tab" type="button" data-profile="Rl">Rl</button>
+      <button class="profile-tab" type="button" data-profile="Da">Da</button>
+    </div>
+    <div class="data-actions">
+      <span id="cloudStatus" class="cloud-status cloud-warn">Cloud: signed out</span>
+      <button id="cloudAuthBtn" type="button">Sign In</button>
+    </div>
+  </div>
+
+  <div class="page-head">
+
+    <button id="nutritionTargetCard" class="head-target card-button" type="button" aria-label="Edit nutrition targets">
+      <div class="dashboard-head">
+        <div class="dashboard-title-block">
+          <div id="metrics"></div>
+        </div>
+      </div>
+    </button>
+
+    <button id="weightTargetCard" class="weight-target card-button" type="button" aria-label="Open weight tracker">
+      <div class="weight-head">
+        <div class="weight-label">Weight Target</div>
+      </div>
+      <div id="weightGoal" class="weight-goal-main">—</div>
+      <div class="weight-card-hint">Open tracker</div>
+    </button>
+  </div>
+
+  <section class="card calendar-card">
+    <div class="calendar-head">
+      <div id="calendarTitle" class="calendar-title"></div>
+      <div class="calendar-nav">
+        <button id="prevMonthBtn" type="button">‹</button>
+        <button id="todayBtn" type="button">Today</button>
+        <button id="nextMonthBtn" type="button">›</button>
+      </div>
+    </div>
+    <div class="calendar-weekdays">
+      <div>Sun</div><div>Mon</div><div>Tue</div><div>Wed</div><div>Thu</div><div>Fri</div><div>Sat</div>
+    </div>
+    <div id="calendarGrid" class="calendar-grid"></div>
+  </section>
+
+  <div id="mealPlanWrap" class="meal-plan-wrap" aria-hidden="true">
+    <div class="meal-plan-panel">
+      <div class="meal-plan-top">
+        <div id="selectedDateLabel" class="selected-date"></div>
+        <button id="mealPlanClose" class="meal-plan-close" type="button" aria-label="Close">×</button>
+      </div>
+      <div class="grid">
+        <main class="card">
+      <div class="meal" data-meal="Snack">
+        <div class="meal-head"><h3>Snack</h3><div class="meal-total">0 kcal</div></div>
+        <div class="rows">
+          <div class="row header"><div>Food</div><div>Amount</div><div class="num">kcal</div><div class="num">P</div><div class="num">C</div><div class="num">F</div><div></div></div>
+        </div>
+        <div class="actions"><button class="addFood">+ 添加食物</button><button class="customFoodInline">+ 自定义食物</button></div>
+      </div>
+
+      <div class="meal" data-meal="Meal 1">
+        <div class="meal-head"><h3>Meal 1</h3><div class="meal-total">0 kcal</div></div>
+        <div class="rows"><div class="row header"><div>Food</div><div>Amount</div><div class="num">kcal</div><div class="num">P</div><div class="num">C</div><div class="num">F</div><div></div></div></div>
+        <div class="actions"><button class="addFood">+ 添加食物</button><button class="customFoodInline">+ 自定义食物</button></div>
+      </div>
+
+      <div class="meal" data-meal="Meal 2">
+        <div class="meal-head"><h3>Meal 2</h3><div class="meal-total">0 kcal</div></div>
+        <div class="rows"><div class="row header"><div>Food</div><div>Amount</div><div class="num">kcal</div><div class="num">P</div><div class="num">C</div><div class="num">F</div><div></div></div></div>
+        <div class="actions"><button class="addFood">+ 添加食物</button><button class="customFoodInline">+ 自定义食物</button></div>
+      </div>
+
+      <div class="actions">
+        <button id="saveBtn" class="primary">保存今天</button>
+        <button id="resetBtn">清空</button>
+      </div>
+    </main>
+  </div>
+</div>
+</div>
+
+
+<div id="targetModal" class="modal-backdrop" aria-hidden="true">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="targetModalTitle">
+    <div class="modal-head">
+      <h3 id="targetModalTitle">Nutrition targets</h3>
+      <button id="targetModalClose" class="modal-close" type="button" aria-label="Close">×</button>
+    </div>
+    <div class="modal-grid">
+      <div class="field full"><label>Calories target</label><input id="tCal" type="number" value="2000"></div>
+      <div class="field"><label>Protein target (%)</label><input id="tPpct" type="number" value="30" step="0.1"></div>
+      <div class="field"><label>Carb target (%)</label><input id="tCpct" type="number" value="40" step="0.1"></div>
+      <div class="field"><label>Fat target (%)</label><input id="tFpct" type="number" value="30" step="0.1"></div>
+      <div class="field"><label>Fibre target (g)</label><input id="tFi" type="number" value="35"></div>
+    </div>
+    <div class="modal-actions">
+      <button id="targetModalCancel" type="button">Cancel</button>
+      <button id="targetModalDone" class="primary" type="button">Done</button>
+    </div>
+  </div>
+</div>
+
+<div id="weightModal" class="modal-backdrop" aria-hidden="true">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="weightModalTitle" style="width:min(620px,100%)">
+    <div class="modal-head">
+      <h3 id="weightModalTitle">Weight tracker</h3>
+      <button id="weightModalClose" class="modal-close" type="button" aria-label="Close">×</button>
+    </div>
+
+    <div class="field">
+      <label>Goal weight (kg)</label>
+      <input id="wGoal" type="number" min="0" step="0.1">
+    </div>
+
+    <div class="tracker-toolbar">
+      <div class="field">
+        <label>Date</label>
+        <input id="wLogDate" type="date">
+      </div>
+      <div class="field">
+        <label>Weight (kg)</label>
+        <input id="wLogWeight" type="number" min="0" step="0.1">
+      </div>
+    </div>
+    <div class="weight-card-hint">Press Enter to add the entry.</div>
+
+    <div class="tracker-summary">
+      <div class="tracker-stat"><div class="k">Latest</div><div id="trackerLatest" class="v">—</div></div>
+      <div class="tracker-stat"><div class="k">Change</div><div id="trackerChange" class="v">—</div></div>
+      <div class="tracker-stat"><div class="k">To Goal</div><div id="trackerGoal" class="v">—</div></div>
+    </div>
+
+    <div class="weight-chart-wrap">
+      <svg id="weightChart" class="weight-chart" viewBox="0 0 520 170" preserveAspectRatio="none"></svg>
+      <div id="weightChartDates" class="weight-chart-dates"></div>
+    </div>
+
+    <div class="modal-actions">
+      <button id="weightModalDone" class="primary" type="button">Done</button>
+    </div>
+  </div>
+</div>
+
+
+
+<div id="cloudAuthModal" class="modal-backdrop" aria-hidden="true">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="cloudAuthTitle" style="width:min(480px,100%)">
+    <div class="modal-head">
+      <h3 id="cloudAuthTitle">Meal Prep Cloud</h3>
+      <button id="cloudAuthClose" class="modal-close" type="button" aria-label="Close">×</button>
+    </div>
+    <div class="auth-grid">
+      <input id="cloudEmail" type="email" autocomplete="email" placeholder="Email">
+      <input id="cloudPassword" type="password" autocomplete="current-password" placeholder="Password">
+      <div id="cloudAuthError" class="auth-error"></div>
+      <div class="modal-actions">
+        <button id="cloudSignUpBtn" type="button">Create Account</button>
+        <button id="cloudSignInBtn" class="primary" type="button">Sign In</button>
+      </div>
+      <div class="auth-note">Your Meal Prep data is saved to your Supabase account. If this page forgets your login, just sign in again — your cloud data stays there.</div>
+    </div>
+  </div>
+</div>
+<div id="customFoodModal" class="modal-backdrop" aria-hidden="true">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="customFoodTitle">
+    <div class="modal-head">
+      <h3 id="customFoodTitle">Add custom food</h3>
+      <button id="customFoodClose" class="modal-close" aria-label="Close">×</button>
+    </div>
+    <div class="modal-grid">
+      <div class="field full"><label>Food name</label><input id="cfName" type="text" placeholder="e.g. Protein bread"></div>
+      <div class="field"><label>Serving amount</label><input id="cfBase" type="number" min="0" step="0.1" value="100"></div>
+      <div class="field"><label>Unit</label><select id="cfUnit"><option value="g">g</option><option value="mL">mL</option></select></div>
+      <div class="field"><label>Calories</label><input id="cfKcal" type="number" min="0" step="0.1" value="0"></div>
+      <div class="field"><label>Protein (g)</label><input id="cfP" type="number" min="0" step="0.1" value="0"></div>
+      <div class="field"><label>Carbs (g)</label><input id="cfC" type="number" min="0" step="0.1" value="0"></div>
+      <div class="field"><label>Fat (g)</label><input id="cfF" type="number" min="0" step="0.1" value="0"></div>
+      <div class="field"><label>Fibre (g)</label><input id="cfFi" type="number" min="0" step="0.1" value="0"></div>
+    </div>
+    <div class="modal-actions" style="justify-content:space-between">
+      <button id="manageCustomFoods">Manage saved foods</button>
+      <div style="display:flex;gap:8px">
+        <button id="customFoodCancel">Cancel</button>
+        <button id="customFoodSave" class="primary">Add food</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="app.js"></script>
+
+
+
+</body>
+</html>
