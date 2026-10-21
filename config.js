@@ -1,0 +1,1 @@
+window.SUPABASE_KEY="sb_publishable_olCs6WhgQ9wpznCoUb02gw_MdWGMtGr";
