@@ -79,6 +79,41 @@ function buildBackupPayload(){
 
 function generateBackupText(){ return JSON.stringify(buildBackupPayload()); }
 
+// Download a self-contained backup of all profiles. No cloud connection required.
+function downloadMealPrepBackup(){
+  try{
+    const payload=buildBackupPayload();
+    const blob=new Blob([JSON.stringify(payload,null,2)],{type:"application/json"});
+    const url=URL.createObjectURL(blob);
+    const a=document.createElement("a");
+    a.href=url;
+    a.download="meal-prep-backup-"+new Date().toISOString().slice(0,10)+".json";
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(()=>URL.revokeObjectURL(url),1000);
+  }catch(error){
+    console.error("Backup download failed",error);
+    alert("Backup could not be downloaded. Please check your browser download permissions.");
+  }
+}
+function importMealPrepBackup(file){
+  if(!file) return;
+  const reader=new FileReader();
+  reader.onload=()=>{
+    try{
+      const payload=JSON.parse(String(reader.result||""));
+      if(payload.app!=="Meal Prep Macro Builder"||!payload.storage) throw Error("Invalid backup");
+      if(!confirm("Importing will replace the matching local Meal Prep records on this browser. Continue only if you intend to restore this backup."))return;
+      // Download a safety copy of the pre-import state first.
+      downloadMealPrepBackup();
+      restoreBackupPayload(payload);
+      alert("Backup restored locally. Please check all three profiles.");
+    }catch(error){console.error("Backup import failed",error);alert("This file is not a valid Meal Prep backup.");}
+  };
+  reader.readAsText(file);
+}
+
 function openSaveBackup(){
   const box=document.getElementById("backupDataBox");
   box.value=generateBackupText();
