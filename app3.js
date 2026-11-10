@@ -117,6 +117,7 @@ function currentMealState(){
 
 function saveMealPlanForDate(key){
   localStorage.setItem(profileKey(`macroDay:${key}`), JSON.stringify(currentMealState()));
+  renderCalendar();
 }
 
 function clearMealRows(){
@@ -173,6 +174,33 @@ function formatSelectedDate(d){
   return d.toLocaleDateString(undefined,{weekday:"long", year:"numeric", month:"long", day:"numeric"});
 }
 
+function getCalendarDayCalories(key){
+  let state;
+  try{state=JSON.parse(localStorage.getItem(profileKey(`macroDay:${key}`))||"null");}catch(e){return null;}
+  if(!Array.isArray(state))return null;
+  let calories=0;
+  for(const meal of state){
+    for(const item of (Array.isArray(meal.items)?meal.items:[])){
+      const food=foods[item.food],amount=Number(item.amount);
+      if(food&&Number(food.base)>0&&Number.isFinite(amount)&&amount>0)calories+=Number(food.kcal||0)*amount/Number(food.base);
+    }
+  }
+  return Math.max(0,calories);
+}
+function makeCalendarRing(calories,target){
+  const ratio=target>0?calories/target:0;
+  const percent=Math.round(ratio*100);
+  const color=ratio>1?"#ed9a43":ratio>=0.9?"#25af88":"#668dff";
+  const ring=document.createElement("span");
+  ring.className="calendar-ring";
+  ring.style.setProperty("--ring-progress",String(Math.max(0,Math.min(100,ratio*100)))+"%");
+  ring.style.setProperty("--ring-color",color);
+  const center=document.createElement("span");
+  center.className="calendar-ring-center";
+  center.textContent=percent+"%";
+  ring.appendChild(center);
+  return ring;
+}
 function renderCalendar(){
   const title=document.getElementById("calendarTitle");
   const grid=document.getElementById("calendarGrid");
@@ -207,7 +235,24 @@ function renderCalendar(){
     if(muted) btn.classList.add("muted");
     if(key===todayKey) btn.classList.add("today");
     if(key===selectedDateKey) btn.classList.add("selected");
-    btn.textContent=d.getDate();
+    const dayNumber=document.createElement("span");
+    dayNumber.className="calendar-day-number";
+    dayNumber.textContent=d.getDate();
+    btn.appendChild(dayNumber);
+    const calories=getCalendarDayCalories(key);
+    let targets=null;
+    try{targets=JSON.parse(localStorage.getItem(profileKey("macroTargets"))||"null");}catch(e){}
+    const target=Number(targets?.kcal||document.getElementById("tCal").value||2000);
+    if(calories!==null && target>0){
+      btn.appendChild(makeCalendarRing(calories,target));
+      btn.title=`${key}: ${Math.round(calories)} / ${Math.round(target)} kcal`;
+    }else{
+      const empty=document.createElement("span");
+      empty.className="calendar-ring calendar-ring-empty";
+      empty.textContent="–";
+      btn.appendChild(empty);
+      btn.title=`${key}: No logged meals`;
+    }
 
     btn.addEventListener("click",()=>{
       selectedDateKey=key;
@@ -281,3 +326,11 @@ document.getElementById("cloudSignUpBtn").addEventListener("click",cloudSignUp);
 document.getElementById("cloudPassword").addEventListener("keydown",e=>{if(e.key==="Enter")cloudSignIn();});
 
 initCloud();
+
+document.getElementById("exportBackupBtn").addEventListener("click",downloadMealPrepBackup);
+document.getElementById("importBackupBtn").addEventListener("click",()=>document.getElementById("importBackupFile").click());
+document.getElementById("importBackupFile").addEventListener("change",e=>{
+  const f=e.target.files?.[0];
+  if(f)importMealPrepBackup(f);
+  e.target.value="";
+});
