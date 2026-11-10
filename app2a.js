@@ -13,6 +13,7 @@ function setCloudStatus(text,state="warn"){
   el.textContent="Cloud: "+text;
   el.classList.remove("cloud-ok","cloud-warn","cloud-bad");
   el.classList.add(state==="ok"?"cloud-ok":state==="bad"?"cloud-bad":"cloud-warn");
+  el.title=state==="bad"?"Click to view error details":"Click to see cloud status";
 }
 function setCloudAuthButton(){ const b=document.getElementById("cloudAuthBtn"); if(b) b.textContent=cloudReady?"Sign Out":"Sign In"; }
 function cloudHeaders(extra={}){ const h={apikey:SUPABASE_KEY,...extra}; if(cloudAccessToken) h.Authorization="Bearer "+cloudAccessToken; return h; }
@@ -50,7 +51,9 @@ function showCloudError(message){
   cloudLastError=String(message||"Unknown error");
   setCloudStatus("save error — details","bad");
   const el=document.getElementById("cloudStatus");
-  if(el){el.title=cloudLastError;el.style.cursor="help";}
+  if(el){el.title="Click to view error details";el.style.cursor="pointer";}
+  const details=document.getElementById("cloudErrorText");
+  if(details)details.textContent=cloudLastError;
 }
 async function refreshCloudSession(){
   if(!cloudRefreshToken)throw Error("Session expired — please sign in again");
@@ -100,7 +103,8 @@ async function cloudSaveNow(){
     const data=await r.json().catch(()=>({}));
     if(!r.ok)throw Error(cloudErrorMessage(data,r.status));
     cloudLastError="";
-    const el=document.getElementById("cloudStatus");if(el){el.title="";el.style.cursor="";}
+    const el=document.getElementById("cloudStatus");if(el){el.title="Click to see cloud status";el.style.cursor="pointer";}
+    const panel=document.getElementById("cloudErrorPanel");if(panel){panel.hidden=true;el?.setAttribute("aria-expanded","false");}
     setCloudStatus("saved","ok");
     return true;
   }catch(e){
@@ -166,3 +170,14 @@ function macroDashboardHtml(total,t){
   const proteinCal=total.p*4,carbCal=total.c*4,fatCal=total.f*9; const targetPercents=[{name:"Protein",pct:t.pPct,color:"var(--protein)"},{name:"Carbs",pct:t.cPct,color:"var(--carb)"},{name:"Fat",pct:t.fPct,color:"var(--fat)"}]; const actualPercents=[{name:"Protein",pct:t.kcal>0?proteinCal/t.kcal*100:0,color:"var(--protein)"},{name:"Carbs",pct:t.kcal>0?carbCal/t.kcal*100:0,color:"var(--carb)"},{name:"Fat",pct:t.kcal>0?fatCal/t.kcal*100:0,color:"var(--fat)"}]; const details=[{name:"Protein",actualG:total.p,actualKcal:proteinCal,targetG:t.p,targetPct:t.pPct},{name:"Carbs",actualG:total.c,actualKcal:carbCal,targetG:t.c,targetPct:t.cPct},{name:"Fat",actualG:total.f,actualKcal:fatCal,targetG:t.f,targetPct:t.fPct}]; const donutSvg=buildArcSvg(targetPercents,actualPercents,details); return `<div class="macro-dashboard"><div class="macro-chart-wrap"><div class="macro-pie">${donutSvg}<div class="macro-center"><strong>${total.kcal.toFixed(0)} kcal</strong><span>${Math.max(t.kcal-total.kcal,0).toFixed(0)} kcal</span></div></div></div><div id="donutTooltip" class="donut-tooltip"></div></div>`;
 }
 function bindDonutTooltips(){ const tooltip=document.getElementById("donutTooltip"); if(!tooltip)return; document.querySelectorAll(".donut-segment").forEach(seg=>{seg.addEventListener("mouseenter",()=>{const parts=(seg.dataset.tip||"").split("||");tooltip.innerHTML=`<strong>${parts[0]||""}</strong><br>${parts.slice(1).join("<br>")}`;tooltip.classList.add("show");});seg.addEventListener("mousemove",e=>{tooltip.style.left=(e.clientX+14)+"px";tooltip.style.top=(e.clientY+14)+"px";});seg.addEventListener("mouseleave",()=>tooltip.classList.remove("show"));}); }
+
+// Explicit, accessible error disclosure instead of relying on hover tooltips.
+document.getElementById("cloudStatus")?.addEventListener("click",()=>{
+  const panel=document.getElementById("cloudErrorPanel");
+  const status=document.getElementById("cloudStatus");
+  const message=document.getElementById("cloudErrorText");
+  if(!panel||!status||!message)return;
+  message.textContent=cloudLastError || (cloudReady?"No error recorded this session. Try updating a meal to check syncing.":"Not signed in to Meal Prep Cloud.");
+  panel.hidden=!panel.hidden;
+  status.setAttribute("aria-expanded",String(!panel.hidden));
+});
