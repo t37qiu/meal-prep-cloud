@@ -415,3 +415,22 @@
   .auth-grid input{width:100%;box-sizing:border-box;}
   .auth-note{font-size:12px;line-height:1.45;color:#6b7280;margin-top:6px;}
   .auth-error{font-size:12px;line-height:1.4;color:#b91c1c;min-height:18px;}
+
+/* Meal Prep 2.0: daily progress at a glance */
+.calendar-day{flex-direction:column;gap:3px;min-width:0;padding:4px 2px;overflow:hidden;}
+.calendar-day-number{font-size:12px;line-height:1.1;font-weight:600;}
+.calendar-ring{--ring-progress:0%;--ring-color:#668dff;display:flex;align-items:center;justify-content:center;flex-shrink:0;width:clamp(28px,5.3vw,52px);height:clamp(28px,5.3vw,52px);border-radius:50%;background:conic-gradient(var(--ring-color) var(--ring-progress),#e9edf3 0);position:relative;color:#263244;}
+.calendar-ring::before{content:"";position:absolute;inset:5px;background:#fff;border-radius:50%;}
+.calendar-ring-center{position:relative;font-size:clamp(8px,1.15vw,11px);font-weight:700;letter-spacing:-.3px;}
+.calendar-ring-empty{background:#f1f3f6;color:#a1a8b3;font-size:14px;}
+.calendar-ring-empty::before{display:none;}
+.calendar-day.selected{background:#eff4ff;color:#1e3b72;border-color:#668dff;}
+.calendar-day.muted .calendar-ring{opacity:.5;}
+@media(max-width:560px){
+  .calendar-weekdays,.calendar-grid{gap:2px;}
+  .calendar-day{gap:2px;padding:3px 0;}
+  .calendar-ring{width:clamp(26px,8vw,38px);height:clamp(26px,8vw,38px);}
+  .calendar-ring::before{inset:4px;}
+  .calendar-ring-center{font-size:9px;}
+  .data-actions{flex-wrap:wrap;}
+}
