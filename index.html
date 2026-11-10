@@ -21,9 +21,14 @@
       <button id="exportBackupBtn" type="button" title="Download all three profiles as a JSON backup">Export Backup</button>
       <button id="importBackupBtn" type="button" title="Restore a saved Meal Prep backup">Import</button>
       <input id="importBackupFile" type="file" accept=".json,application/json" style="display:none">
-      <span id="cloudStatus" class="cloud-status cloud-warn">Cloud: signed out</span>
+      <button id="cloudStatus" class="cloud-status cloud-warn" type="button" aria-expanded="false" aria-controls="cloudErrorPanel" title="Click to see cloud sync status">Cloud: signed out</button>
       <button id="cloudAuthBtn" type="button">Sign In</button>
     </div>
+  </div>
+  <div id="cloudErrorPanel" class="cloud-error-panel" hidden role="status" aria-live="polite">
+    <strong>Cloud sync details</strong>
+    <div id="cloudErrorText">No error recorded in this session.</div>
+    <div class="cloud-error-help">Your local meal records are still available. Export a backup before making changes to your account.</div>
   </div>
 
   <div class="page-head">
